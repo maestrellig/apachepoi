@@ -66,7 +66,7 @@ public class ApachePOIUtilsTest {
 	 */
 	@Test
 	public final void testXmlGenerator() {
-		assertEquals("Qualcosa non funziona", "",apu.xmlGenerator("") ); // TODO
+		assertEquals("Qualcosa non funziona", "",apu.xmlGenerator("") );
 	}
 
 }
