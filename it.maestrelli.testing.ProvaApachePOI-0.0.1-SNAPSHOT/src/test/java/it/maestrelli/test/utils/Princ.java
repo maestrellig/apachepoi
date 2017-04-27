@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
@@ -22,12 +23,18 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFTable;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.xmlbeans.impl.jam.internal.elements.VoidClassImpl;
+import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTAutoFilter;
+import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTFilterColumn;
 import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTTable;
 import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTTableColumn;
 import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTTableColumns;
 import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTTableStyleInfo;
 
-import it.maestrelli.export.model.*;
+import it.maestrelli.export.model.Dipendente;
+import it.maestrelli.export.model.Fornitura;
+import it.maestrelli.export.model.Movimento;
+import it.maestrelli.export.model.Voce;
 
 public class Princ {
 
@@ -89,7 +96,7 @@ public class Princ {
 //		    XSSFSheet sheetB = (XSSFSheet)wb.createSheet("VociRetributive");
 
 		    
-/*Impostazioni per i movimenti*/		    
+		    /*Impostazioni per i movimenti*/		    
 		    /* Create an object of type XSSFTable */
 		    
 		    XSSFTable my_table = sheetA.createTable();
@@ -115,6 +122,8 @@ public class Princ {
 		    cttable.setId(1L); //id attribute against table as long value
 		             
 		    CTTableColumns columns = cttable.addNewTableColumns();
+		    CTAutoFilter autoFilter = cttable.addNewAutoFilter();
+		   
 		    columns.setCount(7L); //define number of columns
 	
 		        /* Define Header Information for the Table */
@@ -146,7 +155,15 @@ public class Princ {
 	      	  		break;
 	
 	      	  }
-		        column.setId(i+1);
+	      	  
+	      	 
+	      	  column.setId(i+1);
+	      	  CTFilterColumn filter = autoFilter.addNewFilterColumn();
+	      	  filter.setColId(i+1);
+	      	  filter.setShowButton(true);
+	      	  sheetA.autoSizeColumn(i);
+	      	  sheetA.setColumnWidth(i, sheetA.getColumnWidth(i) + 1000);
+	      	  
 		    }
 		    
 		    List<Dipendente> ld = forn.getDipendente();
@@ -176,12 +193,40 @@ public class Princ {
 //		    	for(Voce v:lv)
 //		    	{
 //		    		
-//		    	}		    
-		     } 
-
-	         wb.write(fileOut);
-	         fileOut.close();
-	         wb.close();
+//		    	}
+		    	
+		    }
+		    wb.write(fileOut);
+	        fileOut.flush();
+		    fileOut.close();
+	        wb.close();
+	        /*Aprire un altro file, leggerlo e generare l'xml*/
+//	        HashMap<String,Dipendente> hmIDDip = new HashMap<String,Dipendente>();
+//	        for(/*TUTTE LE RIGHE DI MOVIMENTO*/)
+//	        {
+//	        	if(!hmIDDip.containsKey("idSoc;idDip"))
+//	        	{
+//	        		Dipendente dip = new Dipendente();
+//	        		dip.setCodAziendaUfficiale("idSoc");
+//	        		dip.setCodDipendenteUfficiale("idDip");
+//	        		dip.setMovimenti(new ArrayList<Movimento>());
+//	        	}	        	
+//	        	hmIDDip.get("idSoc;idDip").getMovimenti().add(e);
+//	        }
+//	        for(/*TUTTE LE RIGHE DI VOCI RETRIBUTIVA*/)
+//	        {
+//	        	if(!hmIDDip.containsKey("idSoc;idDip"))
+//	        	{
+//	        		Dipendente dip = new Dipendente();
+//	        		dip.setCodAziendaUfficiale("idSoc");
+//	        		dip.setCodDipendenteUfficiale("idDip");
+//	        		dip.setVociRetributive(new ArrayList<Voce>());
+//	        		
+//	        	}else if(hmIDDip.get("idSoc;idDip").getVociRetributive()==null)
+//	        		hmIDDip.get("idSoc;idDip").setVociRetributive(new ArrayList<Voce>());
+//	        	hmIDDip.get("idSoc;idDip").getVociRetributive().add(e);
+//	        }
+	        
 		} catch (IOException e)
 		{
 			e.printStackTrace();

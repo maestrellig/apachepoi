@@ -8,7 +8,6 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 
 public class Dipendente {
 
-	
 	private String codAziendaUfficiale;
 	
 	
@@ -57,4 +56,5 @@ public class Dipendente {
 	public void setVociRetributive(List<Voce> vociRetributive) {
 		this.vociRetributive = vociRetributive;
 	}
+	
 }
