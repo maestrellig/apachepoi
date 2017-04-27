@@ -1,8 +1,12 @@
 package it.maestrelli.test.utils;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +27,6 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFTable;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.apache.xmlbeans.impl.jam.internal.elements.VoidClassImpl;
 import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTAutoFilter;
 import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTFilterColumn;
 import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTTable;
@@ -142,7 +145,7 @@ public class Princ {
 	      	  		column.setName("giustificativo");
 	      	  		break;
 	      	  	case 3:
-	      	  		column.setName("NumMinuti ");
+	      	  		column.setName("NumMinuti");
 	      	  		break;
 	      	  	case 4:
 	      	  		column.setName("GiornChiusS");
@@ -162,7 +165,7 @@ public class Princ {
 	      	  filter.setColId(i+1);
 	      	  filter.setShowButton(true);
 	      	  sheetA.autoSizeColumn(i);
-	      	  sheetA.setColumnWidth(i, sheetA.getColumnWidth(i) + 1000);
+	      	  sheetA.setColumnWidth(i, sheetA.getColumnWidth(i) + 1024);
 	      	  
 		    }
 		    
@@ -200,19 +203,112 @@ public class Princ {
 	        fileOut.flush();
 		    fileOut.close();
 	        wb.close();
+	        
+	        System.out.println("**** LEGGO IL FILE SCRITTO ****");
 	        /*Aprire un altro file, leggerlo e generare l'xml*/
-//	        HashMap<String,Dipendente> hmIDDip = new HashMap<String,Dipendente>();
-//	        for(/*TUTTE LE RIGHE DI MOVIMENTO*/)
-//	        {
-//	        	if(!hmIDDip.containsKey("idSoc;idDip"))
-//	        	{
-//	        		Dipendente dip = new Dipendente();
-//	        		dip.setCodAziendaUfficiale("idSoc");
-//	        		dip.setCodDipendenteUfficiale("idDip");
-//	        		dip.setMovimenti(new ArrayList<Movimento>());
-//	        	}	        	
-//	        	hmIDDip.get("idSoc;idDip").getMovimenti().add(e);
-//	        }
+
+            FileInputStream excelFile = new FileInputStream(new File("workbook.xlsx"));
+            XSSFWorkbook workbook = new XSSFWorkbook(excelFile);
+            XSSFSheet foglioMov = workbook.getSheet("Movimenti");
+            List<XSSFTable> ltab = foglioMov.getTables();
+            HashMap<String,Dipendente> hmsd = new HashMap<String,Dipendente>();
+            for(XSSFTable xsfftab:ltab)
+            {
+            	if("Movimenti".equals(xsfftab.getName()))
+            	{
+            		int iIni =xsfftab.getStartCellReference().getRow();
+            		int jIni =xsfftab.getStartCellReference().getCol();
+            		int iFin =xsfftab.getEndCellReference().getRow();
+            		int jFin =xsfftab.getEndCellReference().getCol();
+            		CTTableColumns cttc = xsfftab.getCTTable().getTableColumns();
+            		for(int i = iIni+1;i<=iFin;i++)
+            		{
+            			String codDipZuc = null;
+            			String codSocZuc = null;
+            			String giustificativo = null;
+            			Integer numMin = null;
+            			String gioChiu = null;
+            			Double pippo = null;
+            			java.util.Date laData = null;
+            			for(int j=jIni;j<=jFin;j++)
+            			{
+            				System.out.println(jFin);
+            				switch(cttc.getTableColumnArray(j).getName())
+            				{
+            					case "idCodDipZuc":
+            						System.out.println(i+","+j+": "+foglioMov.getRow(i).getCell(j).getStringCellValue());
+            						codDipZuc = foglioMov.getRow(i).getCell(j).getStringCellValue();           						
+            						break;
+            					case "idCodSocZuc":
+            						System.out.println(i+","+j+": "+foglioMov.getRow(i).getCell(j).getStringCellValue());
+            						codSocZuc = foglioMov.getRow(i).getCell(j).getStringCellValue();
+            						break;
+            					case "giustificativo":
+            						System.out.println(i+","+j+": "+foglioMov.getRow(i).getCell(j).getStringCellValue());
+            						giustificativo = foglioMov.getRow(i).getCell(j).getStringCellValue();
+            						break;
+            					case "NumMinuti":
+            						System.out.println(i+","+j+": "+foglioMov.getRow(i).getCell(j).getNumericCellValue());
+            						numMin = (int)foglioMov.getRow(i).getCell(j).getNumericCellValue();
+            						break;
+            					case "GiornChiusS":
+            						System.out.println(i+","+j+": "+foglioMov.getRow(i).getCell(j).getStringCellValue());
+            						gioChiu = foglioMov.getRow(i).getCell(j).getStringCellValue();
+            						break;
+            					case "Pippo":
+            						System.out.println(i+","+j+": "+foglioMov.getRow(i).getCell(j).getNumericCellValue());
+            						pippo = foglioMov.getRow(i).getCell(j).getNumericCellValue();
+            						break;
+            					case "Data":
+            						System.out.println(i+","+j+": "+foglioMov.getRow(i).getCell(j).getDateCellValue());
+            						laData = foglioMov.getRow(i).getCell(j).getDateCellValue();
+            						break;
+            				}
+
+            			}
+        	        	if(!hmsd.containsKey(codSocZuc+";"+codDipZuc))
+        	        	{
+        	        		Dipendente dip0 = new Dipendente();
+        	        		dip0.setCodAziendaUfficiale(codSocZuc);
+        	        		dip0.setCodDipendenteUfficiale(codDipZuc);
+        	        		dip0.setMovimenti(new ArrayList<Movimento>());
+        	        		hmsd.put(codSocZuc+";"+codDipZuc,dip0);
+        	        	}	        	
+        	        	Movimento e = new Movimento();
+        	        	GregorianCalendar gc = GregorianCalendar.from(ZonedDateTime.now());
+        	        	e.setIdCodDipZuc(codDipZuc);
+        	        	e.setIdCodSocZuc(codSocZuc);
+        	        	e.setGiornoChiusuraStraordinari(gioChiu);
+        	        	e.setGiustificativo(giustificativo);
+        	        	e.setNumMinuti(numMin);
+        	        	e.setPippo(pippo);
+        	        	gc.setTime(laData);
+        	        	try {
+							e.setDatetime(DatatypeFactory.newInstance().newXMLGregorianCalendar(gc));
+							
+						} catch (DatatypeConfigurationException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+        	        	hmsd.get(codSocZuc+";"+codDipZuc).getMovimenti().add(e);	            			
+            		}
+            			
+            	}
+            }
+            System.out.println("**** SCRIVO IL NUOVO XML ****");
+            Fornitura forni = new Fornitura();
+            forni.setDipendente(new ArrayList<Dipendente>(hmsd.values()));
+    		JAXBContext jc12;
+    		try {
+    			jc12 = JAXBContext.newInstance(Fornitura.class);
+    			Marshaller marshaller = jc12.createMarshaller();
+    			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+    			marshaller.marshal(forni, System.out);
+    		} catch (JAXBException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		}
+            
 //	        for(/*TUTTE LE RIGHE DI VOCI RETRIBUTIVA*/)
 //	        {
 //	        	if(!hmIDDip.containsKey("idSoc;idDip"))
@@ -281,7 +377,7 @@ public class Princ {
 		  		localXSSFCell.setCellValue("giustificativo");
 		  		break;
 		  	case 3:
-		  		localXSSFCell.setCellValue("NumMinuti ");
+		  		localXSSFCell.setCellValue("NumMinuti");
 		  		break;
 		  	case 4:
 		  		localXSSFCell.setCellValue("GiornChiusS");
